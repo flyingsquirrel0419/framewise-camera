@@ -86,6 +86,23 @@
         }
       }
     },
+    "a11y.style": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Style"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "스타일"
+          }
+        }
+      }
+    },
     "about.on_device": {
       "extractionState": "manual",
       "localizations": {
@@ -99,6 +116,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "모든 분석은 이 iPhone에서만 처리돼요."
+          }
+        }
+      }
+    },
+    "chip.selected": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Subject locked"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "선택한 대상 고정"
           }
         }
       }
@@ -1497,6 +1531,23 @@
         }
       }
     },
+    "label.pet": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pet"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "반려동물"
+          }
+        }
+      }
+    },
     "label.scene": {
       "extractionState": "manual",
       "localizations": {
@@ -1888,6 +1939,23 @@
         }
       }
     },
+    "settings.auto_focus": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Subject Autofocus"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "피사체 자동 초점"
+          }
+        }
+      }
+    },
     "settings.auto_scene": {
       "extractionState": "manual",
       "localizations": {
@@ -1901,6 +1969,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "자동 장면 인식"
+          }
+        }
+      }
+    },
+    "settings.candidates_footer": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap a person, pet or object to base framing, focus and style on it. Tap it again to go back to automatic."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "사람·반려동물·물건을 탭하면 그 대상을 기준으로 구도, 초점, 스타일이 맞춰져요. 다시 탭하면 자동으로 돌아가요."
           }
         }
       }
@@ -2075,6 +2160,40 @@
         }
       }
     },
+    "settings.section.subject": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Subject"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "피사체"
+          }
+        }
+      }
+    },
+    "settings.show_candidates": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show All Detected Subjects"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "인식된 대상 모두 표시"
+          }
+        }
+      }
+    },
     "settings.show_guide": {
       "extractionState": "manual",
       "localizations": {
@@ -2177,6 +2296,176 @@
         }
       }
     },
+    "style.auto": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto Style"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "자동 스타일"
+          }
+        }
+      }
+    },
+    "style.bright": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bright"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "화사하게"
+          }
+        }
+      }
+    },
+    "style.food": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Food"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "음식"
+          }
+        }
+      }
+    },
+    "style.golden": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Golden"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "골든아워"
+          }
+        }
+      }
+    },
+    "style.landscape": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scenic"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "풍경"
+          }
+        }
+      }
+    },
+    "style.mono": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mono"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "흑백"
+          }
+        }
+      }
+    },
+    "style.natural": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Natural"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "자연스럽게"
+          }
+        }
+      }
+    },
+    "style.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Style"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "스타일"
+          }
+        }
+      }
+    },
+    "style.vivid": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vivid"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "선명하게"
+          }
+        }
+      }
+    },
+    "style.warm": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Warm"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "따뜻하게"
+          }
+        }
+      }
+    },
     "toast.capture_failed": {
       "extractionState": "manual",
       "localizations": {
@@ -2241,6 +2530,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "사진을 저장했어요"
+          }
+        }
+      }
+    },
+    "toast.selection_lost": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lost the selected subject"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "선택한 대상을 놓쳤어요"
           }
         }
       }

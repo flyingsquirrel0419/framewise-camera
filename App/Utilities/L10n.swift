@@ -12,7 +12,7 @@ enum L10n {
     static func tipKey(_ tip: GuideTip, kind: SubjectKind?) -> String {
         switch tip {
         case .moveSubject(let dir, let mag):
-            let who = kind == .object ? "object" : "person"
+            let who = (kind == .object || kind == .pet) ? "object" : "person"
             return "guide.place.\(who).\(dir.keyComponent).\(mag.rawValue)"
         case .panCamera(let dir, let mag):
             return "guide.pan.\(dir.keyComponent).\(mag.rawValue)"
@@ -32,6 +32,10 @@ enum L10n {
 
     static func subjectLabelKey(_ kind: SubjectKind) -> String {
         "label.\(kind.rawValue)"
+    }
+
+    static func styleKey(_ style: PhotoStyle) -> String {
+        "style.\(style.rawValue)"
     }
 
     static func modeKey(_ mode: CompositionMode) -> String {

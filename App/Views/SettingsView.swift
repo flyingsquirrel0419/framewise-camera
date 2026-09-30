@@ -21,6 +21,14 @@ struct SettingsView: View {
                     Toggle("settings.show_score", isOn: $settings.showScore)
                     Toggle("settings.haptics", isOn: $settings.haptics)
                 }
+                Section {
+                    Toggle("settings.show_candidates", isOn: $settings.showCandidates)
+                    Toggle("settings.auto_focus", isOn: $settings.autoFocusSubject)
+                } header: {
+                    Text("settings.section.subject")
+                } footer: {
+                    Text("settings.candidates_footer")
+                }
                 Section("settings.section.camera") {
                     Toggle("settings.grid", isOn: $settings.showGrid)
                     Toggle("settings.level", isOn: $settings.showLevel)

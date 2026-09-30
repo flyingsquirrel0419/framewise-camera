@@ -85,10 +85,42 @@ struct CameraScreen: View {
                     .transition(.opacity)
             }
             Spacer()
+            styleMenu
             iconButton("gearshape", label: "a11y.settings") { showSettings = true }
         }
         .padding(.horizontal, 18)
         .animation(.easeInOut(duration: 0.3), value: model.guide.result == nil)
+    }
+
+    /// Auto style follows the subject; picking one pins it.
+    private var styleMenu: some View {
+        Menu {
+            Picker(selection: Binding(get: { settings.styleChoice }, set: { model.setStyleChoice($0) })) {
+                Label("style.auto", systemImage: "sparkles").tag("auto")
+                ForEach(PhotoStyle.allCases, id: \.self) { style in
+                    Text(LocalizedStringKey(L10n.styleKey(style))).tag(style.rawValue)
+                }
+            } label: {
+                Text("style.title")
+            }
+        } label: {
+            HStack(spacing: 5) {
+                Image(systemName: settings.fixedStyle == nil ? "sparkles" : "camera.filters")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(Theme.amber)
+                Text(LocalizedStringKey(L10n.styleKey(model.activeStyle)))
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(Theme.textPrimary)
+                    .contentTransition(.opacity)
+            }
+            .padding(.horizontal, 11)
+            .frame(height: 30)
+            .background(Theme.charcoal.opacity(0.8), in: Capsule())
+            .rotationEffect(quadrantRotation)
+            .animation(.easeInOut(duration: 0.3), value: model.activeStyle)
+        }
+        .accessibilityLabel(Text("a11y.style"))
+        .padding(.trailing, 8)
     }
 
     private func iconButton(_ symbol: String, label: LocalizedStringKey, action: @escaping () -> Void) -> some View {
@@ -106,8 +138,12 @@ struct CameraScreen: View {
 
     private var previewArea: some View {
         ZStack {
-            CameraPreview(session: model.camera.session, position: model.configuration?.position ?? .back)
-            GuideOverlay(guide: model.guide, imageSize: model.imageSize, settings: settings, motion: model.motionState)
+            CameraPreview(renderer: model.renderer)
+            GuideOverlay(guide: model.guide, imageSize: model.imageSize, settings: settings, motion: model.motionState,
+                         selectedID: model.selectedID) { point, id in
+                model.tap(at: point, subjectID: id)
+            }
+            focusMarkerLayer
             tipLayer
             Color.black
                 .opacity(model.captureFlash ? 0.9 : 0)
@@ -122,6 +158,7 @@ struct CameraScreen: View {
             }
         }
         .overlay(alignment: .top) { toastView }
+        .overlay(alignment: .topLeading) { selectionChip }
         .contentShape(Rectangle())
         .gesture(
             DragGesture(minimumDistance: 30).onEnded { value in
@@ -159,6 +196,44 @@ struct CameraScreen: View {
             .animation(.smooth(duration: 0.35), value: q)
         }
         .allowsHitTesting(false)
+    }
+
+    private var focusMarkerLayer: some View {
+        GeometryReader { geo in
+            if let marker = model.focusMarker {
+                let mapper = PreviewGeometry(viewSize: geo.size, imageSize: model.imageSize)
+                FocusMarkerView()
+                    .id(marker.id)
+                    .position(mapper.point(marker.point))
+                    .transition(.opacity)
+            }
+        }
+        .allowsHitTesting(false)
+    }
+
+    /// Shown while a tapped subject is locked; tap to return to automatic.
+    @ViewBuilder
+    private var selectionChip: some View {
+        if model.selectedID != nil {
+            let kind = model.guide.result?.subjectKind ?? .object
+            Button { model.clearSelection() } label: {
+                HStack(spacing: 6) {
+                    Circle().fill(Theme.tint(for: kind)).frame(width: 6, height: 6)
+                    Text("chip.selected")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(Theme.textPrimary)
+                    Image(systemName: "xmark")
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundStyle(Theme.textSecondary)
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(Color.black.opacity(0.5), in: Capsule())
+            }
+            .buttonStyle(.plain)
+            .padding(12)
+            .transition(.opacity)
+        }
     }
 
     @ViewBuilder

@@ -40,6 +40,7 @@ public enum SceneClassifier {
         let people = obs.people.filter { ($0.boundingRect?.area ?? 0) > 0.004 }
         if people.count >= 2 { return .group }
         if people.count == 1 { return .portrait }
+        if obs.animals.contains(where: { $0.rect.area > 0.004 }) { return .object }
         if let object = SubjectResolver.primaryObject(in: obs, previous: nil),
            object.rect.area > 0.006, object.rect.area < 0.7 {
             return .object
@@ -137,6 +138,15 @@ public enum SubjectResolver {
     }
 
     static func resolveObject(_ obs: SceneObservation, previous: CGRect?) -> SubjectResolution {
+        // Pets are the most likely intended subject among "things".
+        let pets = obs.animals.filter { $0.rect.area > 0.004 }
+        if let pet = pets.max(by: { a, b in
+            let wa = a.rect.area * (1 + (previous.map { a.rect.iou($0) } ?? 0))
+            let wb = b.rect.area * (1 + (previous.map { b.rect.iou($0) } ?? 0))
+            return wa < wb
+        }) {
+            return .subject(object(rect: pet.rect, kind: .pet, others: obs.salientObjects.map(\.rect)))
+        }
         if let object = primaryObject(in: obs, previous: previous) {
             let others = obs.salientObjects.filter { $0.rect != object.rect && $0.rect.iou(object.rect) < 0.3 }
             return .subject(ResolvedSubject(scene: .object, kind: .object, rect: object.rect,
@@ -151,6 +161,28 @@ public enum SubjectResolver {
                                             secondaryMass: nil, memberCount: 1, faceHeight: nil))
         }
         return .missing(.findObject)
+    }
+
+    /// Resolves a subject the user picked by tapping.
+    public static func resolve(tracked t: TrackedSubject, observation obs: SceneObservation) -> ResolvedSubject {
+        switch t.kind {
+        case .person, .group:
+            var person = t.person ?? PersonObservation(bodyRect: t.rect)
+            if person.bodyRect == nil && person.faceRect == nil { person.bodyRect = t.rect }
+            let single = SceneObservation(people: [person], deviceRoll: obs.deviceRoll, frameAspect: obs.frameAspect)
+            if case .subject(let s) = resolvePortrait(single, previous: nil) { return s }
+            return object(rect: t.rect, kind: .person, others: [])
+        case .pet, .object, .scene:
+            let others = obs.salientObjects.map(\.rect) + obs.people.compactMap(\.boundingRect)
+            return object(rect: t.rect, kind: t.kind == .scene ? .object : t.kind, others: others)
+        }
+    }
+
+    static func object(rect: CGRect, kind: SubjectKind, others: [CGRect]) -> ResolvedSubject {
+        let rest = others.filter { $0.iou(rect) < 0.3 && rect.intersection($0).area < $0.area * 0.6 }
+        return ResolvedSubject(scene: kind == .person ? .portrait : .object, kind: kind, rect: rect,
+                               keyPoint: rect.center, headTop: nil, facing: nil,
+                               secondaryMass: massCentroid(of: rest), memberCount: 1, faceHeight: nil)
     }
 
     // MARK: Landscape

@@ -235,3 +235,106 @@ final class FrameQuadrantTests: XCTestCase {
         XCTAssertEqual(FrameQuadrant.from(angle: -80 * .pi / 180, current: .portrait), .gravityLeft)
     }
 }
+
+final class SelectionAndStyleTests: XCTestCase {
+    func person(x: CGFloat, height: CGFloat = 0.5) -> PersonObservation {
+        let eyes = CGPoint(x: x, y: 0.35)
+        return PersonObservation(bodyRect: CGRect(x: x - 0.1, y: 0.3, width: 0.2, height: height),
+                                 faceRect: CGRect(x: x - 0.05, y: 0.31, width: 0.1, height: 0.07), eyeCenter: eyes, facing: 0)
+    }
+
+    let cup = SalientObject(rect: CGRect(x: 0.62, y: 0.62, width: 0.2, height: 0.2), confidence: 0.9)
+
+    func testTrackerKeepsIDsWhileSubjectsMove() {
+        let tracker = SubjectTracker()
+        let first = tracker.update(SceneObservation(people: [person(x: 0.3)], salientObjects: [cup]), time: 0)
+        XCTAssertEqual(Set(first.map(\.kind)), [.person, .object])
+        var ids = Set(first.map(\.id))
+        for i in 1...20 {
+            let moved = tracker.update(SceneObservation(people: [person(x: 0.3 + CGFloat(i) * 0.01)], salientObjects: [cup]),
+                                       time: Double(i) / 10)
+            ids.formUnion(moved.map(\.id))
+        }
+        XCTAssertEqual(ids.count, 2, "IDs must stay stable while subjects move smoothly")
+    }
+
+    func testObjectnessBoxOnAPersonIsNotAnExtraCandidate() {
+        let tracker = SubjectTracker()
+        let p = person(x: 0.5)
+        let onPerson = SalientObject(rect: p.bodyRect!.insetBy(dx: 0.01, dy: 0.01), confidence: 1)
+        let visible = tracker.update(SceneObservation(people: [p], salientObjects: [onPerson]), time: 0)
+        XCTAssertEqual(visible.map(\.kind), [.person])
+    }
+
+    func testManualSelectionOverridesAutomaticSubject() {
+        let engine = CompositionEngine()
+        let obs = SceneObservation(people: [person(x: 0.3)], salientObjects: [cup])
+        let auto = engine.process(obs, mode: .auto, time: 0)
+        XCTAssertEqual(auto.result?.subjectKind, .person)
+        let cupID = try! XCTUnwrap(auto.subjects.first { $0.kind == .object }?.id)
+
+        var frame = auto
+        for i in 1...8 { frame = engine.process(obs, mode: .auto, selection: .manual(cupID), time: Double(i) / 10) }
+        XCTAssertEqual(frame.result?.subjectKind, .object)
+        XCTAssertEqual(frame.result?.subjectID, cupID)
+        XCTAssertEqual(frame.selectedID, cupID)
+        XCTAssertEqual(frame.recommendedStyle, .vivid)
+    }
+
+    func testLostSelectionFallsBackToAutomatic() {
+        let engine = CompositionEngine()
+        let obs = SceneObservation(people: [person(x: 0.3)], salientObjects: [cup])
+        let cupID = engine.process(obs, mode: .auto, time: 0).subjects.first { $0.kind == .object }!.id
+        _ = engine.process(obs, mode: .auto, selection: .manual(cupID), time: 0.1)
+        let noCup = SceneObservation(people: [person(x: 0.3)])
+        var lost = false
+        var frame = GuideFrame.empty
+        for i in 2...30 {
+            frame = engine.process(noCup, mode: .auto, selection: lost ? .automatic : .manual(cupID), time: Double(i) / 10)
+            if frame.selectionLost { lost = true }
+        }
+        XCTAssertTrue(lost)
+        XCTAssertEqual(frame.result?.subjectKind, .person)
+    }
+
+    func testPetBeatsGenericObjectInAuto() {
+        let engine = CompositionEngine()
+        let dog = AnimalObservation(rect: CGRect(x: 0.2, y: 0.4, width: 0.3, height: 0.3), label: "Dog", confidence: 0.9)
+        var frame = GuideFrame.empty
+        for i in 0..<6 { frame = engine.process(SceneObservation(salientObjects: [cup], animals: [dog]), mode: .auto, time: Double(i) / 10) }
+        XCTAssertEqual(frame.result?.subjectKind, .pet)
+        XCTAssertEqual(Set(frame.subjects.map(\.kind)), [.pet, .object])
+    }
+
+    func testStyleMappingAndHints() {
+        XCTAssertEqual(StyleRecommender.style(for: .person, hints: SceneHints()), .warm)
+        XCTAssertEqual(StyleRecommender.style(for: .group, hints: SceneHints()), .bright)
+        XCTAssertEqual(StyleRecommender.style(for: .object, hints: SceneHints.from(labels: [("baked_goods", 0.6)])), .food)
+        XCTAssertEqual(StyleRecommender.style(for: .scene, hints: SceneHints.from(labels: [("sunset_sunrise", 0.7)])), .golden)
+        XCTAssertEqual(StyleRecommender.style(for: .scene, hints: SceneHints.from(labels: [("mountain", 0.1)])), .landscape)
+        XCTAssertFalse(SceneHints.from(labels: [("food", 0.1)]).isFood, "weak labels are ignored")
+    }
+
+    func testStyleHysteresis() {
+        var r = StyleRecommender()
+        XCTAssertEqual(r.update(kind: .person, hints: SceneHints(), time: 0), .warm)
+        XCTAssertEqual(r.update(kind: .object, hints: SceneHints(), time: 0.3), .warm)
+        XCTAssertEqual(r.update(kind: .person, hints: SceneHints(), time: 0.5), .warm)
+        XCTAssertEqual(r.update(kind: .object, hints: SceneHints(), time: 0.6), .warm)
+        XCTAssertEqual(r.update(kind: .object, hints: SceneHints(), time: 1.7), .vivid)
+    }
+
+    func testStyleParametersInterpolate() {
+        let mid = StyleParameters.lerp(.natural, PhotoStyle.mono.parameters, 0.5)
+        XCTAssertEqual(mid.saturation, 0.5, accuracy: 1e-9)
+        XCTAssertTrue(StyleParameters.natural.isIdentity)
+        XCTAssertFalse(PhotoStyle.warm.parameters.isIdentity)
+        XCTAssertEqual(StyleParameters.lerp(.natural, PhotoStyle.vivid.parameters, 1), PhotoStyle.vivid.parameters)
+    }
+
+    func testFocusPointIsEyeLineForPeople() {
+        let engine = CompositionEngine()
+        let frame = engine.process(SceneObservation(people: [person(x: 0.4)]), mode: .auto, time: 0)
+        XCTAssertEqual(frame.result?.focusPoint?.y ?? 0, 0.35, accuracy: 1e-6)
+    }
+}

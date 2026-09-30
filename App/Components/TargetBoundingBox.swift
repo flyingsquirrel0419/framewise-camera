@@ -6,19 +6,20 @@ struct TargetBoundingBox: View {
     let rect: CGRect
     /// 0 = far away, 1 = on target.
     let proximity: Double
+    var tint: Color = Theme.amber
 
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 5, style: .continuous)
-                .stroke(Theme.amber.opacity(0.16 + 0.14 * proximity),
+                .stroke(tint.opacity(0.16 + 0.14 * proximity),
                         style: StrokeStyle(lineWidth: 0.8, dash: [3, 5]))
             CornerBrackets(length: min(16, min(rect.width, rect.height) * 0.3))
-                .stroke(Theme.amber.opacity(0.45 + 0.35 * proximity),
+                .stroke(tint.opacity(0.45 + 0.35 * proximity),
                         style: StrokeStyle(lineWidth: Theme.guideLine, lineCap: .round, lineJoin: .round))
         }
         .frame(width: max(rect.width, 1), height: max(rect.height, 1))
         .overlay(alignment: .topLeading) {
-            BoxLabel(key: "label.target", opacity: 0.5 + 0.2 * proximity)
+            BoxLabel(key: "label.target", opacity: 0.5 + 0.2 * proximity, tint: tint)
                 .offset(y: -17)
         }
         .position(x: rect.midX, y: rect.midY)

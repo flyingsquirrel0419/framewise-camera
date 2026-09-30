@@ -10,6 +10,21 @@ public struct GuideFrame: Equatable, Sendable {
     public var reason: GuideReason?
     /// True only on the frame where the framing becomes optimal (for haptics).
     public var didBecomeOptimal: Bool
+    /// Every candidate subject in view, with stable IDs (for colored boxes and tapping).
+    public var subjects: [TrackedSubject] = []
+    /// The active manual selection, if any.
+    public var selectedID: Int?
+    /// True when a manually selected subject disappeared and the engine fell back to automatic.
+    public var selectionLost = false
+    /// Stabilized automatic style recommendation.
+    public var recommendedStyle: PhotoStyle = .natural
+
+    public init(result: CompositionResult?, tip: GuideTip, reason: GuideReason?, didBecomeOptimal: Bool) {
+        self.result = result
+        self.tip = tip
+        self.reason = reason
+        self.didBecomeOptimal = didBecomeOptimal
+    }
 
     public static let empty = GuideFrame(result: nil, tip: .searching, reason: nil, didBecomeOptimal: false)
 }
@@ -68,6 +83,14 @@ public final class GuideStabilizer {
         lockedAnchor = nil
         challenger = nil
         challengerCount = 0
+    }
+
+    /// Snap smoothing to the new subject immediately (after a manual selection).
+    public func snapToNextSubject() {
+        subject.reset()
+        target.reset()
+        resetTarget()
+        isOptimal = false
     }
 
     public func update(_ rec: Recommendation?, missingTip: GuideTip, observation: SceneObservation,
@@ -165,7 +188,8 @@ public final class GuideStabilizer {
             tip: tip,
             reason: tips.displayedReason,
             isOptimal: isOptimal,
-            anchor: chosen.anchor
+            anchor: chosen.anchor,
+            focusPoint: rec.subject.scene == .landscape ? nil : rec.subject.keyPoint
         )
         lastFrame = GuideFrame(result: result, tip: tip, reason: tips.displayedReason,
                                didBecomeOptimal: isOptimal && !wasOptimal)

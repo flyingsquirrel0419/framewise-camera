@@ -11,8 +11,16 @@ public enum SceneType: String, Equatable, Sendable {
     case portrait, group, object, landscape
 }
 
-public enum SubjectKind: String, Equatable, Sendable {
-    case person, group, object, scene
+public enum SubjectKind: String, Equatable, Sendable, CaseIterable {
+    case person, group, pet, object, scene
+}
+
+/// Which subject the guide is built around.
+public enum SubjectSelection: Equatable, Sendable {
+    /// The engine picks the subject for the current mode.
+    case automatic
+    /// The user tapped a tracked subject.
+    case manual(Int)
 }
 
 public enum GuideDirection: String, Equatable, Sendable, CaseIterable {
@@ -120,11 +128,17 @@ public struct CompositionResult: Equatable, Sendable {
     public var reason: GuideReason?
     public var isOptimal: Bool
     public var anchor: AnchorID
+    /// Where focus/exposure should go: the eyes for people, the center otherwise.
+    /// `nil` for landscapes.
+    public var focusPoint: CGPoint?
+    /// Tracker ID of the primary subject, when it maps to a single tracked subject.
+    public var subjectID: Int?
 
     public init(scene: SceneType, subjectKind: SubjectKind, subjectRect: CGRect, subjectCenter: CGPoint,
                 targetRect: CGRect, targetCenter: CGPoint, direction: GuideDirection,
                 magnitude: MoveMagnitude, distance: CGFloat, score: Int, tip: GuideTip,
-                reason: GuideReason?, isOptimal: Bool, anchor: AnchorID) {
+                reason: GuideReason?, isOptimal: Bool, anchor: AnchorID,
+                focusPoint: CGPoint? = nil, subjectID: Int? = nil) {
         self.scene = scene
         self.subjectKind = subjectKind
         self.subjectRect = subjectRect
@@ -139,5 +153,7 @@ public struct CompositionResult: Equatable, Sendable {
         self.reason = reason
         self.isOptimal = isOptimal
         self.anchor = anchor
+        self.focusPoint = focusPoint
+        self.subjectID = subjectID
     }
 }

@@ -78,6 +78,18 @@ public extension CompositionResult {
         r.targetRect = q.toScreen(targetRect)
         r.subjectCenter = q.toScreen(subjectCenter)
         r.targetCenter = q.toScreen(targetCenter)
+        r.focusPoint = focusPoint.map { q.toScreen($0) }
         return r
+    }
+}
+
+public extension GuideFrame {
+    /// Converts all geometry from photo space to screen space for drawing.
+    func toScreen(_ q: FrameQuadrant) -> GuideFrame {
+        guard q != .portrait else { return self }
+        var f = self
+        f.result = result?.toScreen(q)
+        f.subjects = subjects.map { var s = $0; s.rect = q.toScreen($0.rect); return s }
+        return f
     }
 }

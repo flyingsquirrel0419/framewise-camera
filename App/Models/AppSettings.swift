@@ -18,11 +18,16 @@ final class AppSettings {
     var autoScene: Bool { didSet { save(autoScene, .autoScene) } }
     var saveToPhotos: Bool { didSet { save(saveToPhotos, .saveToPhotos) } }
     var preferHEIF: Bool { didSet { save(preferHEIF, .preferHEIF) } }
+    var autoFocusSubject: Bool { didSet { save(autoFocusSubject, .autoFocusSubject) } }
+    var showCandidates: Bool { didSet { save(showCandidates, .showCandidates) } }
+    /// "auto" or a `PhotoStyle` raw value.
+    var styleChoice: String { didSet { defaults.set(styleChoice, forKey: Key.styleChoice.rawValue) } }
     var mode: CompositionMode { didSet { defaults.set(mode.rawValue, forKey: Key.mode.rawValue) } }
 
     private enum Key: String {
         case showGuide, showTarget, showTips, showScore, haptics, showGrid, showLevel
         case autoScene, saveToPhotos, preferHEIF, mode
+        case autoFocusSubject, showCandidates, styleChoice
     }
 
     init(defaults: UserDefaults = .standard) {
@@ -40,6 +45,9 @@ final class AppSettings {
         autoScene = bool(.autoScene, true)
         saveToPhotos = bool(.saveToPhotos, true)
         preferHEIF = bool(.preferHEIF, true)
+        autoFocusSubject = bool(.autoFocusSubject, true)
+        showCandidates = bool(.showCandidates, true)
+        styleChoice = defaults.string(forKey: Key.styleChoice.rawValue) ?? "auto"
         mode = defaults.string(forKey: Key.mode.rawValue).flatMap(CompositionMode.init(rawValue:)) ?? .auto
     }
 
@@ -48,6 +56,9 @@ final class AppSettings {
     var availableModes: [CompositionMode] {
         autoScene ? CompositionMode.allCases : CompositionMode.allCases.filter { $0 != .auto }
     }
+
+    /// A style the user pinned, or nil for automatic.
+    var fixedStyle: PhotoStyle? { PhotoStyle(rawValue: styleChoice) }
 
     private func save(_ value: Bool, _ key: Key) {
         defaults.set(value, forKey: key.rawValue)

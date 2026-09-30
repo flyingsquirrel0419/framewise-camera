@@ -78,10 +78,57 @@ public struct SalientObject: Equatable, Sendable {
     }
 }
 
+/// A recognized animal (cat, dog) from Vision's on-device animal recognizer.
+public struct AnimalObservation: Equatable, Sendable {
+    public var rect: CGRect
+    public var label: String
+    public var confidence: Float
+    public init(rect: CGRect, label: String, confidence: Float) {
+        self.rect = rect
+        self.label = label
+        self.confidence = confidence
+    }
+}
+
+/// Coarse scene semantics derived from on-device image classification.
+public struct SceneHints: Equatable, Sendable {
+    public var isFood = false
+    public var isNature = false
+    public var isGoldenHour = false
+    public var isNight = false
+
+    public init(isFood: Bool = false, isNature: Bool = false, isGoldenHour: Bool = false, isNight: Bool = false) {
+        self.isFood = isFood
+        self.isNature = isNature
+        self.isGoldenHour = isGoldenHour
+        self.isNight = isNight
+    }
+
+    static let foodTerms = ["food", "dessert", "meal", "dish", "fruit", "vegetable", "baked", "bread", "cake",
+                            "pizza", "salad", "sushi", "burger", "sandwich", "pasta", "noodle", "coffee",
+                            "drink", "beverage", "cocktail", "wine", "icecream", "ice_cream", "breakfast"]
+    static let natureTerms = ["sky", "mountain", "beach", "ocean", "sea", "lake", "river", "landscape",
+                              "forest", "field", "waterfall", "desert", "snow", "cloud", "hill", "shore",
+                              "coast", "canyon", "valley", "meadow", "outdoor", "nature", "park", "garden"]
+    static let goldenTerms = ["sunset", "sunrise", "dusk", "dawn"]
+    static let nightTerms = ["night", "fireworks", "starry"]
+
+    /// Builds hints from classifier labels. Matching is by substring so it
+    /// tolerates taxonomy details (e.g. "sunset_sunrise", "baked_goods").
+    public static func from(labels: [(identifier: String, confidence: Float)], threshold: Float = 0.3) -> SceneHints {
+        let strong = labels.filter { $0.confidence >= threshold }.map { $0.identifier.lowercased() }
+        func any(_ terms: [String]) -> Bool { strong.contains { id in terms.contains { id.contains($0) } } }
+        return SceneHints(isFood: any(foodTerms), isNature: any(natureTerms),
+                          isGoldenHour: any(goldenTerms), isNight: any(nightTerms))
+    }
+}
+
 /// Everything the engine knows about the current frame.
 public struct SceneObservation: Equatable, Sendable {
     public var people: [PersonObservation]
     public var salientObjects: [SalientObject]
+    public var animals: [AnimalObservation]
+    public var hints: SceneHints
     public var saliency: SaliencySummary?
     /// Device roll in radians (0 = level), from the motion sensors.
     public var deviceRoll: Double?
@@ -90,10 +137,13 @@ public struct SceneObservation: Equatable, Sendable {
     public var timestamp: TimeInterval
 
     public init(people: [PersonObservation] = [], salientObjects: [SalientObject] = [],
+                animals: [AnimalObservation] = [], hints: SceneHints = SceneHints(),
                 saliency: SaliencySummary? = nil, deviceRoll: Double? = nil,
                 frameAspect: CGFloat = 3.0 / 4.0, timestamp: TimeInterval = 0) {
         self.people = people
         self.salientObjects = salientObjects
+        self.animals = animals
+        self.hints = hints
         self.saliency = saliency
         self.deviceRoll = deviceRoll
         self.frameAspect = frameAspect

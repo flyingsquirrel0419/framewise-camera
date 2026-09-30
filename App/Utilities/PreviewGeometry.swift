@@ -24,6 +24,12 @@ struct PreviewGeometry: Equatable {
         CGPoint(x: offset.x + p.x * displayed.width, y: offset.y + p.y * displayed.height)
     }
 
+    /// Inverse of `point(_:)`: a view location to normalized image coordinates.
+    func normalized(_ v: CGPoint) -> CGPoint {
+        guard displayed.width > 0, displayed.height > 0 else { return .zero }
+        return CGPoint(x: (v.x - offset.x) / displayed.width, y: (v.y - offset.y) / displayed.height)
+    }
+
     func rect(_ r: CGRect) -> CGRect {
         CGRect(x: offset.x + r.minX * displayed.width, y: offset.y + r.minY * displayed.height,
                width: r.width * displayed.width, height: r.height * displayed.height)

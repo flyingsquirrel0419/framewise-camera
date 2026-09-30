@@ -82,6 +82,28 @@ final class CameraManager: NSObject, @unchecked Sendable {
         }
     }
 
+    /// Focus and meter at `point`: normalized, top-left origin, in the upright
+    /// preview frame (mirrored for the front camera). Continuous modes keep
+    /// adjusting at that point as the scene changes.
+    func focus(at point: CGPoint) {
+        sessionQueue.async {
+            guard let device = self.deviceInput?.device else { return }
+            let x = min(max(point.x, 0), 1), y = min(max(point.y, 0), 1)
+            // Device coordinates are in the sensor's landscape orientation.
+            let devicePoint = device.position == .front ? CGPoint(x: y, y: x) : CGPoint(x: y, y: 1 - x)
+            guard (try? device.lockForConfiguration()) != nil else { return }
+            if device.isFocusPointOfInterestSupported {
+                device.focusPointOfInterest = devicePoint
+                if device.isFocusModeSupported(.continuousAutoFocus) { device.focusMode = .continuousAutoFocus }
+            }
+            if device.isExposurePointOfInterestSupported {
+                device.exposurePointOfInterest = devicePoint
+                if device.isExposureModeSupported(.continuousAutoExposure) { device.exposureMode = .continuousAutoExposure }
+            }
+            device.unlockForConfiguration()
+        }
+    }
+
     // MARK: Session configuration (sessionQueue only)
 
     private func configureSession(position: AVCaptureDevice.Position) -> CameraSetupResult {

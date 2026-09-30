@@ -5,6 +5,7 @@ import SwiftUI
 struct MovementArrow: View {
     let from: CGRect
     let to: CGRect
+    var tint: Color = Theme.amber
     @State private var pulse = false
 
     var body: some View {
@@ -12,11 +13,11 @@ struct MovementArrow: View {
         let start = ends.0, end = ends.1
         let length = hypot(end.x - start.x, end.y - start.y)
         ArrowShape(start: start, end: end)
-            .stroke(Theme.amber.opacity(pulse ? 0.85 : 0.5),
+            .stroke(tint.opacity(pulse ? 0.85 : 0.5),
                     style: StrokeStyle(lineWidth: 1.4, lineCap: .round, lineJoin: .round, dash: [0.1, 6]))
             .overlay {
                 ArrowHead(start: start, end: end)
-                    .stroke(Theme.amber.opacity(pulse ? 0.9 : 0.6),
+                    .stroke(tint.opacity(pulse ? 0.9 : 0.6),
                             style: StrokeStyle(lineWidth: 1.4, lineCap: .round, lineJoin: .round))
             }
             .opacity(length > 18 ? 1 : 0)
